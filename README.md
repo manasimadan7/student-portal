@@ -12,7 +12,7 @@ There is also a splash screen and a phone / laptop toggle (shown on screens wide
 
 ## Try it
 
-**Live demo:** see the link in the repository's *About* section (GitHub Pages).
+**Live demo:** https://manasimadan7.github.io/student-portal/
 
 Run it locally (Node 18+):
 
