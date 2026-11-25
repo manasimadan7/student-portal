@@ -6,6 +6,8 @@ A phone-first placement portal for students, with three pages:
 - **Jobs** – search and filter roles, browse companies, view job details and apply with a saved resume.
 - **Resume** – build resume pointers, attach proof (an agent checks that the right document was uploaded), see coordinator feedback, re-upload or appeal, and design the resume visually (fonts, colours, margins, templates and a custom box layout). Multiple named resumes can be saved.
 
+About 75 seconds into browsing, a notification arrives: the coordinator has reviewed the resume, and pointers get Needs work / Approved with feedback. Add `?feedbackIn=5` to the URL to make it arrive after 5 seconds.
+
 There is also a splash screen and a phone / laptop toggle (shown on screens wider than 600px).
 
 > All companies, jobs, applications and feedback are sample data for demonstration. Nothing is sent to a server; saved resumes stay in your browser's local storage.

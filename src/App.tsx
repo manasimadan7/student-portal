@@ -4,12 +4,25 @@ import SideNav from './components/SideNav'
 import DeviceToggle from './components/DeviceToggle'
 import Splash from './components/Splash'
 import { DeviceContext, readDevice, saveDevice, type Device } from './device'
-import { defaultStyle, initialSections, seedSaved, type ResumeStyle, type SavedResume, type Section } from './data/resume'
+import FeedbackNotice from './components/FeedbackNotice'
+import { applyFeedback, defaultStyle, feedbackSummary, initialSections, seedSaved, type ResumeStyle, type SavedResume, type Section } from './data/resume'
 import Home from './pages/Home'
 import Jobs from './pages/Jobs'
 import Resume from './pages/Resume'
 
-const SAVED_KEY = 'pp-student-saved-resumes-v1'
+// v2: saves made before feedback became a timed notification carried old reviews
+const SAVED_KEY = 'pp-student-saved-resumes-v2'
+
+/** The coordinator's review arrives this long after the splash. `?feedbackIn=5` (seconds) overrides it for demos. */
+function feedbackDelay() {
+  try {
+    const s = Number(new URLSearchParams(location.search).get('feedbackIn'))
+    if (s > 0) return s * 1000
+  } catch {
+    /* ignore */
+  }
+  return 75_000
+}
 
 function readSaved(): SavedResume[] | null {
   try {
@@ -55,6 +68,27 @@ export default function App() {
     }
   }, [saved])
 
+  // Coordinator feedback: arrives once, 1–2 minutes into browsing, as a notification.
+  const [notice, setNotice] = useState(false)
+  const [feedbackPing, setFeedbackPing] = useState(0)
+  const hideNotice = useCallback(() => setNotice(false), [])
+  const clearPing = useCallback(() => setFeedbackPing(0), [])
+  useEffect(() => {
+    if (splash) return
+    const t = setTimeout(() => {
+      setDraft((d) => ({ ...d, sections: applyFeedback(d.sections) }))
+      setSaved((list) => list.map((s) => ({ ...s, sections: applyFeedback(s.sections) })))
+      setNotice(true)
+    }, feedbackDelay())
+    return () => clearTimeout(t)
+  }, [splash])
+
+  const viewFeedback = () => {
+    setNotice(false)
+    setTab('resume')
+    setFeedbackPing((n) => n + 1) // opens the feedback list on the Resume page
+  }
+
   const changeTab = (t: Tab) => {
     if (t === 'jobs' && tab === 'jobs') setJobsKey((k) => k + 1)
     setTab(t)
@@ -93,8 +127,11 @@ export default function App() {
           {tab === 'jobs' && (
             <Jobs key={jobsKey} resumes={saved.map((s) => s.name)} onBack={() => setTab('home')} onOpenResume={() => setTab('resume')} />
           )}
-          {tab === 'resume' && <Resume draft={draft} setDraft={setDraft} saved={saved} onSave={saveDraft} onLoad={loadSaved} />}
+          {tab === 'resume' && (
+            <Resume draft={draft} setDraft={setDraft} saved={saved} onSave={saveDraft} onLoad={loadSaved} feedbackPing={feedbackPing} onFeedbackShown={clearPing} />
+          )}
           {device === 'phone' ? <BottomNav active={tab} onChange={changeTab} /> : <SideNav active={tab} onChange={changeTab} />}
+          {notice && <FeedbackNotice changes={feedbackSummary.changes} approved={feedbackSummary.approved} onView={viewFeedback} onClose={hideNotice} />}
           {splash && <Splash onDone={hideSplash} />}
         </div>
       </div>

@@ -113,6 +113,19 @@ Resume on mobile:
   - Tap the summary or the chevron to expand. The expanded part (under a hairline) holds the proof chips and +, and the conversation: the needs-work thread with Re-upload / Appeal, or the read-only thread with Reply.
   - Opening a pointer from the feedback list expands it.
   - Laptop cards drop the 257px desktop height; the + tile is 140px on laptop and 88px on phone.
+- **Feedback arrives as a notification (latest)**:
+  - When the prototype opens nothing has been reviewed. Each pointer shows only **✓ Uploaded** or **Not uploaded** (no pills, no Feedback toggle, no badge).
+  - 75 s after the splash, a notification slides in at the top of the app: "Your coordinator reviewed your resume · 3 pointers need work · 1 approved", with **View** and ✕. It leaves by itself after 12 s. View goes to Resume and opens the feedback list.
+  - The review then lands on the draft and on saved resumes: Microsoft, Google and Placement Committee need work, and Design Club is approved (proof becomes Verified). The student's own edits and files are kept.
+  - `?feedbackIn=5` in the URL makes it arrive after 5 s, for demos. Saved resumes moved to the localStorage key `pp-student-saved-resumes-v2`.
+- **Pointer card (user mock, latest)**: the original card (laptop 257px min, padding 37/34) with the full description.
+  - Header: title (+ Needs work / Approved pill after review) on the left; dates, the feedback icon (after review) and a faint edit ✎ on the right.
+  - **No proof**: link field and the original outlined **↑ Proof** button (`#636363` outline, r70) on one row.
+  - **Proof uploaded**: link field across the card, then one row of file chips (PDF | NAME with grey ✕), a dashed **+**, and **✓ Submitted**.
+- **Card actions (supersedes the notes below where they differ)**:
+  - Proof chips stay visible on every card, followed by the original **Proof** button (pill r70, 32h, `rgba(80,132,164,.8)`, white upload icon + "Proof"). On a needs-work pointer with one flagged file, Proof replaces that file (tooltip "Replace PDF | …"); otherwise it adds a document.
+  - Feedback is hidden behind a small **Feedback** toggle on the link line (amber text + dot when the pointer needs work). Approved pointers show no coordinator comments and no toggle, and are left out of the top feedback list.
+  - Reply is gone (it duplicated Appeal). The only response inside the feedback panel is the **Appeal** pill.
 - **Needs-work card** (user mock, 2nd — now shown when expanded):
   - Amber 1.5px border (`#F0B64A`) and a **Needs work** pill beside the title (approved pointers get a green **Approved** pill). A small edit pencil sits after the date.
   - The proof file the coordinator commented on gets an amber outline. The proof row keeps its normal state (e.g. ✓ Submitted).

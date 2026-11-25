@@ -886,6 +886,86 @@
   font-family: var(--font-nav);
   font-size: 13px;
 }
+/* Original Proof button (319:16345): pill r70, 32h, primary-light 80%, 20px upload icon + "Proof", Inter 16 white, gap 10 */
+.proof-btn {
+  flex: none;
+  height: 32px;
+  padding: 0 14px 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 70px;
+  background: rgba(80, 132, 164, 0.8);
+  font-family: var(--font-nav);
+  font-size: 16px;
+  color: #fff;
+  transition: background 150ms;
+}
+.proof-btn img {
+  width: 20px;
+  height: 20px;
+}
+.proof-btn:hover:not(:disabled) {
+  background: var(--student-primary-light);
+}
+.proof-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+/* Feedback toggle on the card's quiet line */
+.pc-fb {
+  position: relative;
+  height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 20px;
+  font-family: var(--font-nav);
+  font-size: 12px;
+  color: var(--neutral-600);
+  transition: background 150ms;
+}
+.pc-fb:hover,
+.pc-fb.is-open {
+  background: rgba(0, 0, 0, 0.05);
+}
+.pc-fb--work {
+  color: #8a5e00;
+}
+/* Phone: icon only, so the link keeps its room */
+.app--phone .pc-fb {
+  width: 30px;
+  padding: 0;
+  justify-content: center;
+}
+.app--phone .pc-fb__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.pc-fb .pc-icon__dot {
+  top: 3px;
+  right: 3px;
+}
+.pc > .proof-row {
+  margin-top: 10px;
+}
+.proof-state--none {
+  font-family: var(--font-nav);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--neutral-a30);
+}
+/* Footer row: link shrinks so the Proof pill always fits */
+.pc-line .proof-btn {
+  margin-left: auto;
+}
+.pc-line .proof-btn + .pc-line__icons {
+  margin-left: 0;
+}
 .proof-add:disabled,
 .proof-chip__x:disabled {
   opacity: 0.45;
@@ -911,18 +991,11 @@
 }
 
 /* ---------- Compact pointer card: summary + one line, details on demand ---------- */
-.rs-card.pc {
-  padding: 16px 16px 10px;
-}
 .pc-sum {
   cursor: pointer;
 }
 .pc .rs-card__head {
   align-items: center;
-}
-.pc .rs-card__title {
-  font-size: 15px;
-  font-weight: 500;
 }
 .pc-desc {
   margin-top: 6px !important;
@@ -1429,17 +1502,43 @@
 /* Laptop: chips at the mock's size */
 .app--laptop .proof-chip,
 .app--laptop .proof-add {
-  height: 42px;
+  height: 32px;
 }
 .app--laptop .proof-add {
-  min-width: 42px;
+  min-width: 32px;
 }
 .app--laptop .proof-chip__name {
-  padding: 0 18px;
-  font-size: 13px;
+  padding: 0 12px;
+  font-size: 11.5px;
 }
 .app--laptop .proof-chip__x {
-  width: 50px;
+  width: 30px;
+}
+/* Mock: chips, + and Submitted share one row under the link field */
+.pc-og__foot .proof-row {
+  flex: none;
+  gap: 8px;
+}
+.app--laptop .rs-card.pc--og {
+  padding-left: 34px;
+  padding-right: 34px;
+}
+.app--laptop .pc-og__foot .proof-chip__x {
+  width: 26px;
+}
+.pc-og__foot .proof-row {
+  gap: 6px;
+}
+.pc-og__foot .proof-state {
+  margin-left: 4px;
+}
+.pc-og__foot .proof-chip__name {
+  padding: 0 8px !important;
+  font-size: 11px !important;
+  letter-spacing: 0;
+}
+.pc-og__foot .proof-state {
+  font-size: 13px;
 }
 .app--laptop .pc-icons {
   margin-top: 6px;
@@ -1807,28 +1906,53 @@
 }
 
 /* ---------- Compact pointer cards on laptop (override the tall 257px desktop card) ---------- */
-.app--laptop .rs-card.pc,
-.app--laptop .rs-split .rs-card.pc {
-  min-height: 0;
-  display: block;
-  padding: 22px 26px 14px;
+/* Pointer card as in the user's mock: original card, header icons after the date,
+   footer = link field + outlined Proof, or link field over the proof chips */
+.pc--og .rs-card__head {
+  align-items: flex-start;
 }
-.app--laptop .pc .rs-card__title {
+.pc-og__right {
+  margin-top: -6px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.pc-og__right .rs-card__date {
+  margin-right: 6px;
+}
+.pc-og__right .pc-fb {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+.pc-og__edit {
+  opacity: 0.55;
+}
+.pc-og__edit:hover,
+.pc-og__edit:focus-visible {
+  opacity: 1;
+}
+.pc-og__foot {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pc-og__foot .link-field {
+  flex: none;
+}
+.pc-og__foot .proof-add {
+  width: 32px;
+  padding: 0;
   font-size: 16px;
 }
-.app--laptop .pc-desc {
-  margin-top: 8px !important;
-  max-width: none;
-  font-size: 14.5px !important;
+.app--laptop .pc-og__foot {
+  margin-top: auto;
+  padding-top: 18px;
 }
-.app--laptop .pc-line {
-  margin-top: 10px;
-  font-size: 13px;
-}
-.app--laptop .rs-add {
-  height: 140px;
-}
-.app--laptop .rs-add img {
-  width: 48px;
-  height: 48px;
+.app--laptop .pc-og__foot .link-field {
+  font-size: 16px;
 }

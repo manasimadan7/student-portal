@@ -222,62 +222,41 @@ const rawSections: Section[] = [
   },
 ]
 
-/* Sample coordinator reviews (staff portal → Resume verification). Messages are examples. */
-const day = 24 * 60 * 60 * 1000
-const t0 = Date.UTC(2026, 10, 20, 10, 30) // 20 Nov 2026
-const seedReviews: Record<string, Pick<Entry, 'review' | 'feedback' | 'appealAt'>> = {
-  w1: {
-    review: 'changes',
-    appealAt: t0 + 3 * 60 * 60 * 1000,
-    feedback: [
-      {
-        id: 'f0',
-        from: 'coordinator',
-        file: 'offer_letter.pdf',
-        text: 'The letter doesn’t show your dates – add the completion certificate.',
-        at: t0,
-      },
-      {
-        id: 'f0b',
-        from: 'student',
-        kind: 'appeal',
-        text: 'The dates are on page 2 of the letter – I’ve highlighted them.',
-        attachments: ['offer_letter_p2.pdf'],
-        at: t0 + 3 * 60 * 60 * 1000,
-      },
-    ],
-  },
-  w2: {
-    review: 'changes',
-    feedback: [
-      {
-        id: 'f2',
-        from: 'coordinator',
-        text: 'Add a number that shows impact, e.g. how much faster reporting got. Also upload the offer letter as proof.',
-        at: t0,
-      },
-    ],
-  },
-  w3: { review: 'in-review' },
-  p1: {
-    review: 'changes',
-    feedback: [
-      { id: 'f3', from: 'coordinator', text: 'Use your role title exactly as it appears on the appointment letter.', at: t0 - day },
-      { id: 'f4', from: 'student', text: 'The letter says "Student Placement Coordinator". Should I use that?', at: t0 - day + 2 * 60 * 60 * 1000 },
-      { id: 'f5', from: 'coordinator', text: 'Yes, use that and keep the rest.', at: t0 - day + 5 * 60 * 60 * 1000 },
-    ],
-  },
-  p2: {
-    review: 'approved',
-    feedback: [{ id: 'f1', from: 'coordinator', text: 'Proof checks out. Approved.', at: t0 - 3 * day }],
-  },
-  r1: { review: 'in-review' },
+/* Sample coordinator review (staff portal → Resume verification). Messages are examples.
+   Nothing is reviewed when the prototype opens — pointers are only Uploaded / Not uploaded.
+   1–2 minutes in, this review "arrives" as a notification (see App.tsx → applyFeedback). */
+type Review = Pick<Entry, 'review'> & { notes?: { text: string; file?: string }[]; proof?: Entry['proof'] }
+const seedReviews: Record<string, Review> = {
+  w1: { review: 'changes', notes: [{ file: 'offer_letter.pdf', text: 'The letter doesn’t show your dates – add the completion certificate.' }] },
+  w2: { review: 'changes', notes: [{ text: 'Add a number that shows impact, e.g. how much faster reporting got. Also upload the offer letter as proof.' }] },
+  p1: { review: 'changes', notes: [{ text: 'Use your role title exactly as it appears on the appointment letter.' }] },
+  p2: { review: 'approved', proof: 'verified' },
 }
 
+/** Before review: uploaded proof is just "Uploaded" (no verified state yet). */
 export const initialSections: Section[] = rawSections.map((s) => ({
   ...s,
-  entries: s.entries.map((e) => ({ ...e, ...seedReviews[e.id] })),
+  entries: s.entries.map((e) => ({ ...e, proof: e.proof === 'verified' ? 'submitted' : e.proof })),
 }))
+
+/** The coordinator's review lands on the current draft (keeps the student's own edits and files). */
+export function applyFeedback(sections: Section[], now = Date.now()): Section[] {
+  return sections.map((s) => ({
+    ...s,
+    entries: s.entries.map((e) => {
+      const r = seedReviews[e.id]
+      if (!r) return e
+      const notes: FeedbackMsg[] = (r.notes ?? []).map((n, i) => ({ id: `fb-${e.id}-${i}`, from: 'coordinator', text: n.text, file: n.file, at: now }))
+      return { ...e, review: r.review, proof: r.proof ?? e.proof, feedback: [...(e.feedback ?? []), ...notes] }
+    }),
+  }))
+}
+
+/** What the notification says: how many pointers need work / were approved */
+export const feedbackSummary = {
+  changes: Object.values(seedReviews).filter((r) => r.review === 'changes').length,
+  approved: Object.values(seedReviews).filter((r) => r.review === 'approved').length,
+}
 
 /** Files attached to a pointer (older saves only have `proofFile`). */
 export const proofFilesOf = (e: Entry) => e.proofFiles ?? (e.proofFile && e.proof !== 'none' ? [e.proofFile] : [])

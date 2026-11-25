@@ -24,6 +24,7 @@ import addSm from '../assets/icons/add-sm.svg'
 import addLg from '../assets/icons/add-lg.svg'
 import agentIcon from '../assets/icons/agent.svg'
 import expandMore from '../assets/icons/expand-more.svg'
+import uploadIcon from '../assets/icons/upload.svg'
 import './Resume.css'
 
 type View = 'list' | 'visual'
@@ -35,11 +36,14 @@ interface Props {
   /** returns true when it overwrote a save with the same name */
   onSave: (name: string) => boolean
   onLoad: (id: string) => void
+  /** Set by the feedback notification's View: opens the feedback list once */
+  feedbackPing?: number
+  onFeedbackShown?: () => void
 }
 
 /* Figma 366:20296 (pointer view), 469:3915 (visual view), 468:3837 (proof agent).
    Designed for desktop — laid out here for a phone column. */
-export default function Resume({ draft, setDraft, saved, onSave, onLoad }: Props) {
+export default function Resume({ draft, setDraft, saved, onSave, onLoad, feedbackPing = 0, onFeedbackShown }: Props) {
   const device = useDevice()
   const [view, setView] = useState<View>('list')
   const { sections, style } = draft
@@ -126,7 +130,7 @@ export default function Resume({ draft, setDraft, saved, onSave, onLoad }: Props
               </div>
             )}
           </div>
-          <FeedbackButton sections={sections} onJump={jumpTo} />
+          <FeedbackButton sections={sections} onJump={jumpTo} ping={feedbackPing} onPinged={onFeedbackShown} />
           <div className="view-toggle" role="group" aria-label="Resume view">
             <button className={view === 'list' ? 'is-active' : ''} aria-pressed={view === 'list'} aria-label="Pointer view" onClick={() => setView('list')}>
               <img src={viewModule} alt="" />
@@ -278,9 +282,26 @@ function SectionTabs({ sections, active, onSelect, onAdd }: { sections: Section[
 
 /* ---------------- Feedback: icon in the top bar → list of all feedback ---------------- */
 
-function FeedbackButton({ sections, onJump }: { sections: Section[]; onJump: (sectionId: string, entryId: string) => void }) {
+function FeedbackButton({
+  sections,
+  onJump,
+  ping = 0,
+  onPinged,
+}: {
+  sections: Section[]
+  onJump: (sectionId: string, entryId: string) => void
+  ping?: number
+  onPinged?: () => void
+}) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
+
+  // "View" on the feedback notification opens this list (once)
+  useEffect(() => {
+    if (!ping) return
+    setOpen(true)
+    onPinged?.()
+  }, [ping, onPinged])
 
   useEffect(() => {
     if (!open) return
@@ -299,7 +320,7 @@ function FeedbackButton({ sections, onJump }: { sections: Section[]; onJump: (se
   // Pointers with any feedback; ones that need changes first, then newest message first.
   const items = sections
     .flatMap((s) => s.entries.map((e) => ({ e, section: s })))
-    .filter(({ e }) => e.review === 'changes' || (e.feedback ?? []).some((m) => m.from === 'coordinator'))
+    .filter(({ e }) => e.review !== 'approved' && (e.review === 'changes' || (e.feedback ?? []).some((m) => m.from === 'coordinator')))
     .map((x) => {
       const asks = x.e.review === 'changes' ? openRequests(x.e.feedback) : []
       const last = [...(x.e.feedback ?? [])].reverse().find((m) => m.from === 'coordinator')
@@ -376,25 +397,17 @@ function PointerCard({
 }) {
   const msgs = e.feedback ?? []
   const needsWork = e.review === 'changes'
-  const [expanded, setExpanded] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [replying, setReplying] = useState(false)
   const [title, setTitle] = useState(e.title)
   const [desc, setDesc] = useState(e.description)
-  const [reply, setReply] = useState('')
+  // Approved pointers carry no coordinator comments on the card
+  const hasFeedback = msgs.length > 0 && e.review !== 'approved'
 
   // Opened from the feedback list: show everything
   useEffect(() => {
-    if (focused) setExpanded(true)
+    if (focused) setShowFeedback(true)
   }, [focused])
-
-  const send = () => {
-    const text = reply.trim()
-    if (!text) return
-    onUpdate({ feedback: [...msgs, { id: `m-${Date.now()}`, from: 'student', text, at: Date.now() }] })
-    setReply('')
-    setReplying(false)
-  }
 
   const startEdit = () => {
     setTitle(e.title)
@@ -420,6 +433,11 @@ function PointerCard({
 
   const reReview = e.review === 'approved' || needsWork
   const flagged = needsWork ? flaggedFiles(e) : []
+  // On a needs-work pointer with one flagged file, Proof replaces that file
+  const replacing = needsWork && flagged.length === 1 ? flagged[0] : null
+  const uploadProof = replacing ? () => onReupload(replacing) : onAddProof
+  const proofTitle = replacing ? `Replace ${proofLabel(replacing)}` : 'Upload proof'
+  const files = proofFilesOf(e)
 
   if (editing) {
     return (
@@ -452,146 +470,99 @@ function PointerCard({
   }
 
   return (
-    <article className={`rs-card pc${needsWork ? ' rs-card--work' : ''}${expanded ? ' is-expanded' : ''}${focused ? ' is-focused' : ''}`}>
-      {/* Summary — tap to expand */}
-      <div
-        className="pc-sum"
-        onClick={(ev) => {
-          if (!(ev.target as Element).closest('button, a, input')) setExpanded(!expanded)
-        }}
-      >
-        <div className="rs-card__head">
-          <div className="pc-title">
-            <h3 className="rs-card__title">{e.title}</h3>
-            {(needsWork || e.review === 'approved') && <span className={`review-pill review-pill--${e.review}`}>{reviewLabel[e.review!]}</span>}
-          </div>
-          {e.start && <span className="rs-card__date">{formatRange(e.start, e.end)}</span>}
+    <article className={`rs-card pc pc--og${needsWork ? ' rs-card--work' : ''}${focused ? ' is-focused' : ''}`}>
+      <div className="rs-card__head">
+        <div className="pc-title">
+          <h3 className="rs-card__title">{e.title}</h3>
+          {(needsWork || e.review === 'approved') && <span className={`review-pill review-pill--${e.review}`}>{reviewLabel[e.review!]}</span>}
         </div>
-        <p className="rs-card__desc pc-desc">{e.description}</p>
-      </div>
-
-      {/* One quiet line: link · edit */}
-      <div className="pc-line">
-        <span className="pc-line__link" title={e.link}>
-          <MailIcon />
-          <span>{e.link}</span>
-        </span>
-        <span className="pc-line__icons">
-          <button className="pc-icon" aria-label={`Edit ${e.title}`} title="Edit" onClick={startEdit}>
+        <span className="pc-og__right">
+          {e.start && <span className="rs-card__date">{formatRange(e.start, e.end)}</span>}
+          {hasFeedback && (
+            <button
+              className={`pc-fb${showFeedback ? ' is-open' : ''}${needsWork ? ' pc-fb--work' : ''}`}
+              aria-expanded={showFeedback}
+              aria-label="Feedback"
+              title="Feedback"
+              onClick={() => setShowFeedback(!showFeedback)}
+            >
+              <ChatIcon size={15} />
+              {needsWork && !showFeedback && <span className="pc-icon__dot" aria-hidden />}
+            </button>
+          )}
+          <button className="pc-icon pc-og__edit" aria-label={`Edit ${e.title}`} title="Edit" onClick={startEdit}>
             <EditIcon />
           </button>
         </span>
       </div>
+      <p className="rs-card__desc">{e.description}</p>
 
-      {/* Attachments and feedback — always visible */}
-      <div className="pc-more">
-          <ProofRow entry={e} onAdd={onAddProof} onRemove={onRemoveProof} />
+      {/* Footer (user mock): no proof → link field + outlined Proof button on one row.
+          Proof uploaded → link field, then the file chips, a dashed + and ✓ Submitted. */}
+      {files.length === 0 ? (
+        <div className="rs-card__foot">
+          <span className="link-field" title={e.link}>
+            <MailIcon />
+            <span>{e.link}</span>
+          </span>
+          <button className={`proof${e.proof === 'checking' ? ' proof--checking' : ''}`} title={proofTitle} disabled={e.proof === 'checking'} onClick={uploadProof}>
+            {e.proof === 'checking' ? <span className="proof__spin" aria-hidden /> : <img src={uploadIcon} alt="" />}
+            {e.proof === 'checking' ? 'Checking' : 'Proof'}
+          </button>
+        </div>
+      ) : (
+        <div className="pc-og__foot">
+          <span className="link-field" title={e.link}>
+            <MailIcon />
+            <span>{e.link}</span>
+          </span>
+          <ProofRow entry={e} onAdd={uploadProof} addTitle={proofTitle} onRemove={onRemoveProof} />
+        </div>
+      )}
 
+      {/* Feedback — hidden until asked for; never on approved pointers */}
+      {hasFeedback && showFeedback && (
+        <div className="pc-more">
           {needsWork ? (
-            <WorkThread
-              entry={e}
-              flagged={flagged}
-              onUpdate={onUpdate}
-              onToast={onToast}
-              onReupload={() => onReupload(flagged.length === 1 ? flagged[0] : undefined)}
-            />
+            <WorkThread entry={e} flagged={flagged} onUpdate={onUpdate} onToast={onToast} />
           ) : (
-            msgs.length > 0 && (
-              <div className="pc-thread">
-                <ol className="pc-thread__list">
-                  {msgs.map((m) => (
-                    <li key={m.id} className={`pc-msg pc-msg--${m.from}`}>
-                      {m.from !== 'system' && <span className="pc-msg__who">{m.from === 'coordinator' ? 'Coordinator' : 'You'}</span>}
-                      <p className="pc-msg__text">{m.text}</p>
-                      <time className="pc-msg__time" dateTime={new Date(m.at).toISOString()}>
-                        {formatMsgTime(m.at, true)}
-                      </time>
-                    </li>
-                  ))}
-                </ol>
-                {!replying ? (
-                  <div className="pc-thread__actions">
-                    <button className="pc-act" onClick={() => setReplying(true)}>
-                      Reply
-                    </button>
-                  </div>
-                ) : (
-                  <form
-                    className="pc-reply"
-                    onSubmit={(ev) => {
-                      ev.preventDefault()
-                      send()
-                    }}
-                  >
-                    <input
-                      aria-label="Reply to coordinator"
-                      placeholder="Reply to the coordinator"
-                      value={reply}
-                      autoFocus
-                      onChange={(ev) => setReply(ev.target.value)}
-                      onKeyDown={(ev) => {
-                        if (ev.key === 'Escape') {
-                          setReply('')
-                          setReplying(false)
-                        }
-                      }}
-                    />
-                    <button type="submit" aria-label="Send" disabled={!reply.trim()}>
-                      <SendIcon />
-                    </button>
-                    <button
-                      type="button"
-                      className="pc-reply__cancel"
-                      aria-label="Cancel reply"
-                      onClick={() => {
-                        setReply('')
-                        setReplying(false)
-                      }}
-                    >
-                      <Close size={16} />
-                    </button>
-                  </form>
-                )}
-              </div>
-            )
+            <ol className="pc-thread__list">
+              {msgs.map((m) => (
+                <li key={m.id} className={`pc-msg pc-msg--${m.from}`}>
+                  {m.from !== 'system' && <span className="pc-msg__who">{m.from === 'coordinator' ? 'Coordinator' : 'You'}</span>}
+                  <p className="pc-msg__text">{m.text}</p>
+                  <time className="pc-msg__time" dateTime={new Date(m.at).toISOString()}>
+                    {formatMsgTime(m.at, true)}
+                  </time>
+                </li>
+              ))}
+            </ol>
           )}
-      </div>
+        </div>
+      )}
     </article>
   )
 }
 
-/* Needs-work conversation, always visible on the card (user mock):
-   coordinator notes · your messages · two separate ways to respond (Re-upload / Appeal) · plain Reply box */
+/* Needs-work conversation, shown from the Feedback toggle:
+   coordinator notes · your messages · one way to respond (Appeal). Re-upload is the Proof button. */
 function WorkThread({
   entry: e,
   flagged,
   onUpdate,
   onToast,
-  onReupload,
 }: {
   entry: Entry
   flagged: string[]
   onUpdate: (p: Partial<Entry>) => void
   onToast: (m: string) => void
-  onReupload: () => void
 }) {
   const msgs = e.feedback ?? []
-  const [text, setText] = useState('')
   const [appealing, setAppealing] = useState(false)
-  const [replying, setReplying] = useState(false)
   const [reason, setReason] = useState('')
   const [attached, setAttached] = useState<string[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
   const firstReply = msgs.findIndex((m) => m.from !== 'coordinator')
-  const checking = e.proof === 'checking'
-
-  const reply = () => {
-    const body = text.trim()
-    if (!body) return
-    onUpdate({ feedback: [...msgs, { id: `m-${Date.now()}`, from: 'student', text: body, at: Date.now() }] })
-    setText('')
-    setReplying(false)
-  }
 
   const sendAppeal = () => {
     const body = reason.trim()
@@ -641,27 +612,13 @@ function WorkThread({
       </ol>
       {e.appealAt && <p className="wt__status">Appeal sent · the coordinator re-checks within 24 h</p>}
 
-      {/* Separate ways to respond — pill buttons */}
+      {/* Respond: Appeal (re-upload is the Proof button on the card) */}
       {!appealing ? (
-        <div className="wt-pills" role="group" aria-label="Respond to the coordinator">
-          <button
-            className="wt-pill wt-pill--reupload"
-            onClick={onReupload}
-            disabled={checking}
-            title={target ? `Replace ${target} with a new document` : 'Fix it with a new document'}
-          >
-            <UploadIcon />
-            {checking ? 'Checking…' : 'Re-upload'}
-          </button>
+        <div className="wt-pills">
           <button className="wt-pill wt-pill--appeal" onClick={() => setAppealing(true)} title="Your proof is right? Ask for a re-check">
             <AppealIcon />
             {e.appealAt ? 'Appeal again' : 'Appeal'}
           </button>
-          {!replying && (
-            <button className="wt-pill" onClick={() => setReplying(true)}>
-              Reply
-            </button>
-          )}
         </div>
       ) : (
         <form
@@ -726,47 +683,6 @@ function WorkThread({
           </div>
         </form>
       )}
-
-      {/* Plain reply — opens from the Reply pill */}
-      {replying && !appealing && (
-        <form
-          className="wt-compose"
-          onSubmit={(ev) => {
-            ev.preventDefault()
-            reply()
-          }}
-        >
-          <span className="wt-input">
-            <input
-              aria-label="Reply to the coordinator"
-              placeholder="Reply to the coordinator…"
-              value={text}
-              autoFocus
-              onChange={(ev) => setText(ev.target.value)}
-              onKeyDown={(ev) => {
-                if (ev.key === 'Escape') {
-                  setText('')
-                  setReplying(false)
-                }
-              }}
-            />
-          </span>
-          <button type="submit" className="wt-btn" disabled={!text.trim()}>
-            Send
-          </button>
-          <button
-            type="button"
-            className="pc-reply__cancel"
-            aria-label="Cancel reply"
-            onClick={() => {
-              setText('')
-              setReplying(false)
-            }}
-          >
-            <Close size={16} />
-          </button>
-        </form>
-      )}
     </div>
   )
 }
@@ -786,11 +702,6 @@ const EditIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
     <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
     <path d="m13.5 6.5 4 4" stroke="currentColor" strokeWidth="1.8" />
-  </svg>
-)
-const SendIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path d="M4 12 20 4l-6 16-2.5-6.5L4 12Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
   </svg>
 )
 
@@ -900,24 +811,23 @@ function EntryList({
   )
 }
 
-/* Proof row: one chip per document (PDF | OFFER LETTER ×), a dashed + to attach more, then the state. */
+/* Proof row: one chip per document (PDF | OFFER LETTER ×), then the state.
+   Before review there are only two states: Uploaded / Not uploaded. Upload is the Proof button on the footer row. */
 function ProofRow({
   entry,
   onAdd,
+  addTitle = 'Add proof',
   onRemove,
-  onReupload,
 }: {
   entry: Entry
   onAdd: () => void
+  addTitle?: string
   onRemove: (file: string) => void
-  /** Needs-work pointers: replace the file the coordinator commented on */
-  onReupload?: () => void
 }) {
   const files = proofFilesOf(entry)
   const { proof } = entry
   const checking = proof === 'checking'
   const coordFlagged = entry.review === 'changes' ? flaggedFiles(entry) : []
-  const showReupload = !!onReupload && proof !== 'checking' && proof !== 'rejected'
 
   return (
     <div className="proof-row">
@@ -933,17 +843,10 @@ function ProofRow({
           </span>
         )
       })}
-      <button className={`proof-add${files.length ? '' : ' proof-add--empty'}`} aria-label="Add proof" disabled={checking} onClick={onAdd}>
+      <button className="proof-add" title={addTitle} aria-label={addTitle} disabled={checking} onClick={onAdd}>
         <span aria-hidden>+</span>
-        {files.length === 0 && <span className="proof-add__label">Add proof</span>}
       </button>
-      {showReupload && (
-        <button className="reupload-btn" onClick={onReupload}>
-          <UploadIcon />
-          Re-upload
-        </button>
-      )}
-      {!showReupload && proof !== 'none' && (
+      {proof !== 'none' && (
         <span className={`proof-state proof-state--${proof}`} role="status">
           {(proof === 'submitted' || proof === 'verified') && <CheckIcon />}
           {checking && <span className="proof__spin" aria-hidden />}
@@ -954,11 +857,6 @@ function ProofRow({
   )
 }
 
-const UploadIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
 const ClipIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
     <path d="m20 11.5-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4l7.6-7.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
