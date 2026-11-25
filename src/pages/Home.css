@@ -1,0 +1,436 @@
+/* ---------- Header (wave 440×106, #BBDBE3) ---------- */
+.home__header {
+  position: relative;
+  height: 106px;
+}
+.home__wave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.home__hi {
+  position: absolute;
+  left: var(--gutter);
+  top: 45px;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  color: var(--student-primary-dark);
+}
+.home__avatar {
+  position: absolute;
+  right: 24px;
+  top: 30px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+}
+
+/* ---------- Page grid ----------
+   Phone: applied → quick links → stats, stacked.
+   Laptop: quick links | applied (2 cols), stats full width below. */
+.home__grid {
+  padding: 13px var(--gutter) 0 calc(var(--gutter) - 1px);
+  display: flex;
+  flex-direction: column;
+}
+.home__links {
+  margin-top: 37px;
+}
+.home__title--links {
+  display: none; /* phone: tiles speak for themselves, as in Figma */
+}
+.home__stats {
+  margin-top: 40px;
+}
+
+/* ---------- Companies applied ---------- */
+.home__title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  color: var(--neutral-700);
+}
+
+.status-chips {
+  display: flex;
+  gap: 5px;
+  margin-top: 9px;
+}
+.status-chip {
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  transition: box-shadow 150ms, background 150ms, color 150ms;
+}
+.status-chip--all { background: var(--neutral-a3); color: var(--neutral-a30); }
+.status-chip--shortlisted { background: var(--status-shortlisted-bg); color: var(--status-shortlisted); }
+.status-chip--reject { background: var(--status-reject-bg); color: var(--status-reject); }
+.status-chip--pending { background: var(--status-pending-bg); color: var(--status-pending); }
+
+/* Active "All" is the Figma state (grey fill, white text, drop shadow). */
+.status-chip--all.is-active {
+  background: var(--neutral-a30);
+  border-color: var(--neutral-a30);
+  color: var(--neutral-0);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.25);
+}
+.status-chip.is-active:not(.status-chip--all) {
+  border-color: currentColor;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.15);
+}
+
+.applied {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.applied__card {
+  position: relative;
+  height: 61px;
+  border: 1px solid var(--neutral-100);
+  border-radius: 12px;
+  background: var(--neutral-0);
+}
+.applied__name {
+  position: absolute;
+  left: 11px;
+  top: 16px;
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  color: var(--neutral-700);
+}
+.applied__cat {
+  position: absolute;
+  left: 11px;
+  top: 35px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--neutral-a30);
+}
+/* Date notch sitting on the top border */
+.applied__date {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  height: 24px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--neutral-0);
+  font-size: 12px;
+  letter-spacing: -0.3px;
+  color: var(--text-date);
+}
+.applied__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.applied__dot--pending { background: var(--status-pending); }
+.applied__dot--shortlisted { background: var(--status-shortlisted); }
+.applied__dot--reject { background: var(--status-reject); }
+
+.applied__count {
+  position: absolute;
+  right: 28px;
+  top: 25px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--student-primary-light);
+}
+.applied__count img {
+  width: 16px;
+  height: 16px;
+}
+.applied__empty {
+  padding: 20px 0;
+  font-size: 12px;
+  color: var(--neutral-a30);
+}
+
+/* ---------- Blog / Calendar tiles (126 & 204 × 126, r20) ---------- */
+/* ---------- Quick links: Blog / Calendar tiles (126 & 204 × 126, r20) ---------- */
+.home__tiles {
+  display: grid;
+  grid-template-columns: 126fr 204fr;
+  gap: 18px;
+}
+.tile {
+  position: relative;
+  height: 126px;
+  border-radius: 20px;
+  background: var(--neutral-a3);
+  color: var(--secondary-dark);
+  text-decoration: none;
+  transition: background 150ms;
+}
+.tile:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+.tile:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+.tile__arrow {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+}
+.tile__label {
+  position: absolute;
+  left: 15px;
+  bottom: 18px;
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+/* ---------- Stats visuals (company Stats tab language, 319:16841) ---------- */
+.hstats {
+  margin-top: 14px;
+  display: grid;
+  gap: 14px;
+}
+.hstat-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.hstat-tile {
+  padding: 14px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--neutral-100);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hstat-tile__num {
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+  color: var(--student-primary-dark);
+}
+.hstat-tile__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--neutral-a30);
+}
+.hstat-card {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--neutral-100);
+}
+.hstat-card__h {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 22.5px;
+  color: var(--neutral-700);
+}
+.hstat-card__sub {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--neutral-700);
+}
+
+/* Segmented status bar — 2px surface gap between segments, 4px rounded ends */
+.seg-bar {
+  margin-top: 14px;
+  height: 10px;
+  display: flex;
+  gap: 2px;
+}
+.seg-bar__seg {
+  min-width: 6px;
+  border-radius: 2px;
+}
+.seg-bar__seg:first-child {
+  border-radius: 4px 2px 2px 4px;
+}
+.seg-bar__seg:last-child {
+  border-radius: 2px 4px 4px 2px;
+}
+.seg-bar__seg:only-child {
+  border-radius: 4px;
+}
+.seg-legend {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 12px;
+  color: var(--neutral-700);
+}
+.seg-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.seg-legend b {
+  font-weight: 700;
+  color: var(--neutral-700);
+}
+.seg-legend__key {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+/* Horizontal bars (Hires by Division style) */
+.hbars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hbars li {
+  padding-top: 12px;
+}
+.hbars__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--neutral-700);
+}
+.hbars__row b {
+  font-weight: 700;
+  color: var(--student-primary-dark);
+}
+.hbars__track {
+  display: block;
+  margin-top: 4px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--tertiary-light);
+  overflow: hidden;
+}
+.hbars__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--secondary-light);
+}
+
+/* Column chart (Annual Hires style) */
+.cols {
+  height: 128px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 16px 4px 0;
+}
+.cols__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.cols__val {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 13.5px;
+  color: var(--student-primary-dark);
+}
+.cols__bar {
+  width: 100%;
+  max-width: 54px;
+  min-height: 8px;
+  border-radius: 4px 4px 0 0;
+  background: var(--secondary-light);
+  transition: background 150ms;
+}
+.cols__col:hover .cols__bar {
+  background: var(--secondary-dark);
+}
+.cols__name {
+  max-width: 100%;
+  font-size: 9px;
+  line-height: 13.5px;
+  color: var(--neutral-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Laptop (no desktop Home design yet — phone components on a wider grid) ---------- */
+.app--laptop .home__header {
+  height: 160px;
+}
+.app--laptop .home__hi {
+  top: 64px;
+  font-size: 32px;
+}
+.app--laptop .home__avatar {
+  top: 44px;
+  right: 61px;
+  width: 72px;
+  height: 72px;
+}
+.app--laptop .home__grid {
+  max-width: 1280px;
+  padding: 20px var(--gutter) 0;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-areas:
+    'links applied'
+    'stats stats';
+  gap: 0 48px;
+}
+.app--laptop .home__applied {
+  grid-area: applied;
+}
+.app--laptop .home__links {
+  grid-area: links;
+  margin-top: 0;
+}
+.app--laptop .home__stats {
+  grid-area: stats;
+  margin-top: 48px;
+}
+.app--laptop .home__title--links {
+  display: block;
+}
+.app--laptop .home__tiles {
+  margin-top: 14px;
+  grid-template-columns: 1fr;
+}
+/* Applied jobs: two columns */
+.app--laptop .applied {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 34px 18px;
+}
+/* Stats: tiles + three cards in one row */
+.app--laptop .hstats {
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 18px;
+}
+.app--laptop .hstat-tiles {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 220px));
+}
+.app--laptop .hstat-tile__num {
+  font-size: 32px;
+}

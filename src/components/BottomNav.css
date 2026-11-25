@@ -1,0 +1,69 @@
+/* Bar 403 × 78.2 in a 440 frame, 20px off the bottom. */
+.bnav {
+  --pos-0: 16.2%;
+  --pos-1: 50.4%;
+  --pos-2: 82.3%;
+  position: absolute;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(403px, calc(100% - 37px));
+  height: 78px;
+  border-radius: 55px;
+  background: var(--student-primary-dark);
+  z-index: 20;
+}
+
+/* White circle 81px with a 5.46px primary-dark ring, raised 10.9px above the bar. */
+.bnav__circle {
+  position: absolute;
+  top: -11px;
+  left: var(--pos-0);
+  width: 81px;
+  height: 81px;
+  margin-left: -40.5px;
+  border-radius: 50%;
+  background: var(--neutral-0);
+  border: 5.46px solid var(--student-primary-dark);
+  transition: left 320ms cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+.bnav__circle[data-pos='1'] { left: var(--pos-1); }
+.bnav__circle[data-pos='2'] { left: var(--pos-2); }
+
+.bnav__item {
+  position: absolute;
+  top: 0;
+  left: var(--pos-0);
+  width: 76px;
+  height: 78px;
+  margin-left: -38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--neutral-0);
+  font-family: var(--font-nav);
+  font-weight: 500;
+  font-size: 11.83px;
+  line-height: 1;
+  transition: transform 320ms cubic-bezier(0.3, 0.9, 0.3, 1), color 200ms;
+}
+.bnav__item[data-pos='1'] { left: var(--pos-1); }
+.bnav__item[data-pos='2'] { left: var(--pos-2); }
+
+.bnav__item img {
+  width: 29px;
+  height: 29px;
+  display: block;
+}
+
+.bnav__item.is-active {
+  color: var(--student-primary-dark);
+  transform: translateY(-9px);
+}
+
+.bnav__item:focus-visible {
+  outline-color: var(--neutral-0);
+  border-radius: 12px;
+}

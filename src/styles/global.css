@@ -1,0 +1,125 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: #eef2f4;
+  font-family: var(--font-sans);
+  font-variation-settings: 'opsz' 14;
+  color: var(--neutral-700);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}
+
+p,
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--student-primary-light);
+  outline-offset: 2px;
+}
+
+/* ---------- Device shells ---------- */
+.shell {
+  height: 100%;
+}
+.app {
+  position: relative;
+  height: 100%;
+  margin: 0 auto;
+  background: var(--neutral-0);
+  overflow: hidden;
+}
+
+/* Phone: full-bleed on real phones; a 440 × 904 device frame on bigger screens. */
+.app--phone {
+  max-width: var(--app-max);
+}
+@media (min-width: 600px) {
+  .shell--phone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .app--phone {
+    width: var(--app-max);
+    height: min(904px, 100%);
+    border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(58, 111, 145, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* Laptop: Figma desktop frames — 123px rail, content starts 61px after it. */
+.app--laptop {
+  --gutter: 61px;
+  --nav-space: 60px;
+  max-width: none;
+}
+.app--laptop .page {
+  padding-left: 123px;
+  scrollbar-width: thin;
+}
+.app--laptop .bottom-fade {
+  display: none;
+}
+
+.page {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--nav-space) + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+}
+.page::-webkit-scrollbar {
+  display: none;
+}
+
+/* White fade that sits above the floating nav (Figma 323:17404). */
+.bottom-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 190px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #fff 58%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

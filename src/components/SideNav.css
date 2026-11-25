@@ -1,0 +1,47 @@
+.snav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 123px;
+  background: var(--student-primary-dark);
+  z-index: 20;
+}
+.snav__circle {
+  position: absolute;
+  left: 24px;
+  width: 109px;
+  height: 109px;
+  border-radius: 50%;
+  background: var(--neutral-0);
+  border: 10px solid var(--student-primary-dark);
+  transition: top 320ms cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+/* Items are centred on x = 78.5 (the circle's centre), as in Figma */
+.snav__item {
+  position: absolute;
+  left: 24px;
+  width: 109px;
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 27px;
+  gap: 9px;
+  color: var(--neutral-0);
+  font-family: var(--font-nav);
+  font-weight: 500;
+  font-size: 13px;
+  transition: color 200ms;
+}
+.snav__item img {
+  width: 32px;
+  height: 32px;
+}
+.snav__item.is-active {
+  color: var(--student-primary-dark);
+}
+.snav__item:focus-visible {
+  outline-color: var(--neutral-0);
+  border-radius: 50%;
+}

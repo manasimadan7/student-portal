@@ -1,0 +1,111 @@
+.splash {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  overflow: hidden;
+  background: radial-gradient(120% 80% at 50% 40%, #ffffff 0%, #f4ebfb 55%, var(--secondary-light) 100%);
+  cursor: pointer;
+  transition: opacity 450ms ease 250ms;
+}
+
+/* ---------- Intro: zoom in from small ---------- */
+.splash__zoom {
+  width: min(56vw, 240px);
+  animation: splash-in 900ms cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+}
+.app--laptop .splash__zoom {
+  width: 280px;
+}
+.splash__mark {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- Spin: flower clockwise, star counter-clockwise ---------- */
+.splash__flower,
+.splash__star {
+  transform-box: view-box;
+}
+.splash__flower {
+  transform-origin: 551.414px 482.487px;
+  animation: splash-spin-cw 2.6s cubic-bezier(0.45, 0, 0.2, 1) 150ms both;
+}
+.splash__star {
+  transform-origin: 547.248px 483.571px;
+  animation: splash-spin-ccw 2.6s cubic-bezier(0.45, 0, 0.2, 1) 150ms both;
+}
+
+/* Wordmark */
+.splash__name {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+  color: var(--student-primary-dark);
+  animation: splash-name 700ms ease-out 550ms both;
+}
+
+/* ---------- Exit: zoom through the mark, fade to the app ---------- */
+.splash.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash.is-leaving .splash__zoom {
+  animation: splash-out 700ms cubic-bezier(0.6, 0, 0.8, 0.4) forwards;
+}
+.splash.is-leaving .splash__name {
+  animation: splash-name-out 250ms ease-in forwards;
+}
+
+@keyframes splash-in {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+}
+@keyframes splash-spin-cw {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes splash-spin-ccw {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes splash-name {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes splash-out {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(9);
+    opacity: 0;
+  }
+}
+@keyframes splash-name-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash__zoom,
+  .splash__flower,
+  .splash__star,
+  .splash__name,
+  .splash.is-leaving .splash__zoom {
+    animation: none;
+  }
+}
